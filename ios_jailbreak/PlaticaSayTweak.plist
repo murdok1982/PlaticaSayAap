@@ -1,0 +1,11 @@
+{
+    Filter = {
+        Bundles = (
+            "net.whatsapp.WhatsApp",
+            "ph.telegra.Telegraph",
+            "com.apple.facetime",
+            "com.google.Meet",
+            "us.zoom.videomeetings"
+        );
+    };
+}

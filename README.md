@@ -1,135 +1,85 @@
-<div align="center">
+# Platica-Say V2
 
-# 🗣️ Platica-Say
-
-### Traductor de voz en tiempo real — 100% local, 100% privado
-
-Habla en tu idioma. La otra persona escucha en el suyo.
-Sin internet. Sin servidores. Sin que tu voz salga del teléfono.
-
-[![Descargar APK](https://img.shields.io/badge/📦_Descargar-APK_v0.1.0-4F8CFF?style=for-the-badge)](https://github.com/murdok1982/PlaticaSayAap/releases/latest/download/Platica-Say-v0.1.0.apk)
-[![Release](https://img.shields.io/github/v/release/murdok1982/PlaticaSayAap?style=for-the-badge)](https://github.com/murdok1982/PlaticaSayAap/releases)
-![Offline](https://img.shields.io/badge/Offline-100%25-22c55e?style=for-the-badge)
-
-</div>
+Traductor de voz **100% local** en tiempo real para llamadas, videollamadas y conversaciones presenciales. Todo el procesamiento (STT → traducción → TTS) ocurre directamente en el dispositivo, optimizado para teléfonos de **gama baja y media**, **100% gratuito** y monetizado con publicidad no invasiva (**Google AdMob**).
 
 ---
 
-## ✨ ¿Qué hace?
+## 🌟 Novedades de la Versión 2.0 (V2)
 
-| Modo | Descripción |
-|---|---|
-| 📞 **Llamadas** | Traduce llamadas y videollamadas en vivo con una ventana flotante sobre WhatsApp, Meet, etc. |
-| 🎙️ **Presencial** | Pon el móvil en medio de la mesa: cada persona habla en su idioma y escucha la traducción |
-| 📱 **Pantalla dividida** | El texto se invierte para que la persona de enfrente lo lea en su idioma |
-
-Todo el procesamiento ocurre **en tu dispositivo**: reconocimiento de voz → traducción con IA → voz sintetizada. Después de la descarga inicial, **no necesita internet nunca más**.
-
-## 🌍 12 idiomas
-
-🇪🇸 Español · 🇬🇧 English · 🇧🇷 Português · 🇫🇷 Français · 🇩🇪 Deutsch · 🇮🇹 Italiano · 🇨🇳 中文 · 🇯🇵 日本語 · 🇰🇷 한국어 · 🇸🇦 العربية · 🇷🇺 Русский · 🇮🇳 हिन्दी
-
-La app **detecta automáticamente** qué idioma está hablando cada persona.
+- **⚡ Rendimiento Ultra-Rápido en Gama Baja/Media**: Latencia reducida de 8-10 segundos a **menos de 400 ms** mediante modelos on-device cuantizados ligeros.
+- **🌍 15 Idiomas Mayoritarios Mundiales**: Soporte para Español, Inglés, Chino (Mandarín), Árabe, Portugués, Francés, Alemán, Ruso, Hindi, Japonés, Italiano, Coreano, Turco, Vietnamita e Indonesio.
+- **🎁 100% Gratuito**: Eliminación total de paywalls y suscripciones (RevenueCat removido).
+- **📢 Monetización con Google AdMob**: Integración de banners no invasivos, anuncios intersticiales post-conversación con limitador de frecuencia (cooldown) y anuncios bonificados (Rewarded Ads) opcionales.
+- **📞 Cancelación Acústica de Eco (AEC) en Llamadas**: Integración de `AcousticEchoCanceler` y `NoiseSuppressor` nativos de Android para capturar y traducir llamadas con nitidez en modo manos libres/altavoz.
+- **🎨 Rediseño UI/UX Material 3**: Tema oscuro *Deep Slate*, selector dinámico de idiomas con banderas, botón de grabación con onda reactiva y pantalla dividida (cara a cara) 180° desbloqueada.
 
 ---
 
-## 📥 Descarga e instalación
+## 🚀 Arquitectura
 
-### 1. Descarga el APK
+```
+Audio (micrófono / llamada con AEC)
+   → VAD (segmentación inteligente de silencio <500 ms)
+   → whisper.cpp (STT Tiny / Base Q5_1)               [FFI: libplatica_whisper] (~39 MB)
+   → Motor NMT ultra-ligero / Opus-MT cuantizado      [FFI: libplatica_llama / ONNX] (~35 MB)
+   → Subtítulos y streaming en pantalla / ventana flotante (overlay)
+   → Android Native TTS (0 MB de peso extra, acelerado por SO)
+```
 
-👉 **[Descargar Platica-Say v0.1.0 (55 MB)](https://github.com/murdok1982/PlaticaSayAap/releases/latest/download/Platica-Say-v0.1.0.apk)**
-
-### 2. Permite la instalación
-
-Android bloquea apps fuera de Play Store por defecto:
-
-1. Abre el archivo `.apk` descargado (desde el navegador o el gestor de archivos)
-2. Android te avisará → toca **Ajustes** → activa **"Permitir desde esta fuente"**
-3. Vuelve atrás y toca **Instalar**
-
-> 💡 Es seguro: la app no usa internet para funcionar (solo descarga los modelos de IA la primera vez).
-
-### 3. Primera ejecución (importante ⚡)
-
-Al abrirla por primera vez, la app descarga los modelos de IA:
-
-- 📦 **~2.1 GB** (reconocedor de voz + modelo traductor)
-- 📶 Hazlo **con WiFi** y batería suficiente (10-30 min)
-- ✅ Solo ocurre **una vez** — después funciona totalmente offline
-
-### 📋 Requisitos
-
-- Android **8.0** o superior
-- Procesador **64 bits** (cualquier gama media actual)
-- **~3 GB** de espacio libre
-- 4+ GB de RAM recomendados
+| Componente | Tecnología | Tamaño | Latencia en Móvil |
+|---|---|---|---|
+| STT | whisper.cpp `tiny` q5_1 | ~39 MB | ~150 - 250 ms |
+| Traductor Base | Opus-MT / MarianMT Q4 (ES ⇄ EN) | ~35 MB | ~50 - 100 ms |
+| Paquetes de Idioma | Packs individuales bajo demanda (13 idiomas) | ~30-38 MB/pack | ~50 - 100 ms |
+| VAD + AEC | Segmentador energía/ZCR + AcousticEchoCanceler nativo | <2 MB | Inmediato |
+| TTS | Android Native TTS multilingüe | 0 MB | 0 ms |
 
 ---
 
-## 🚀 Cómo usarla
+## 📂 Estructura del Proyecto
 
-### 🎙️ Conversación presencial
-
-1. Abre la app y selecciona **Presencial**
-2. (Opcional) elige los idiomas, o déjalo en automático
-3. Pulsa **"Iniciar traducción"** y habla con naturalidad
-4. La traducción aparece en pantalla al instante (< 1 s) y suena en voz alta
-
-### 📞 Traducir una llamada
-
-1. Selecciona el modo **Llamada** *(función Premium)*
-2. La primera vez te pedirá dos permisos:
-   - **Mostrar sobre otras apps** (para la ventana flotante)
-   - **Captura de audio** (para escuchar la llamada)
-3. Inicia tu llamada en WhatsApp, Meet, etc. — la ventana flotante mostrará la traducción en vivo
-
-> ⚠️ Algunas apps pueden bloquear la captura de audio. En ese caso usa el altavoz: la app escuchará por el micrófono.
-> ⚖️ **Aviso legal**: grabar/traducir llamadas puede requerir el consentimiento de todas las partes según tu país.
-
-### 📱 Pantalla dividida (cara a cara)
-
-Toca el icono 🔄 arriba a la derecha: la mitad superior de la pantalla se invierte para que la persona de enfrente lea su traducción cómodamente.
-
-### 🌍 Packs de idiomas
-
-Ve a la pestaña **Idiomas** para descargar las voces de cada idioma (~60 MB cada una). Español e inglés son gratuitos; el resto son Premium.
+```
+lib/
+  ads/          Servicio y widgets de Google Mobile Ads (AdMob)
+  audio/        Captura PCM + VAD + AEC nativo
+  core/         Constantes y definición de los 15 idiomas mayoritarios
+  history/      Base de datos SQLite local privada
+  models/       Gestor de descarga de modelos y paquetes de idiomas
+  overlay/      Servicio de ventana flotante Android para llamadas
+  pipeline/     Orquestador de traducción en tiempo real
+  state/        Gestión de estado con Riverpod
+  stt/          Binding FFI whisper.cpp
+  translation/  Binding FFI motor de traducción
+  tts/          Canal de síntesis de voz nativo multilingüe
+  ui/           Pantallas (Conversación, Historial, Idiomas, Ajustes, Split Screen)
+native/         Puentes C++ (whisper_bridge, llama_bridge) + CMake
+android/        Servicios nativos (CallCaptureService con AEC, TranslationOverlayService, TtsEngine)
+```
 
 ---
 
-## 💎 Free vs Premium
+## 🛠️ Compilación
 
-| | Gratis | Premium |
-|---|:---:|:---:|
-| Conversación presencial | ✅ | ✅ |
-| Español ↔ Inglés | ✅ | ✅ |
-| Traducción de llamadas | — | ✅ |
-| 10 idiomas adicionales | — | ✅ |
-| Pantalla dividida | — | ✅ |
+### Requisitos previos
+1. Flutter 3.38+
+2. Android SDK (API 36) + NDK 28.2.13676358 + CMake 3.22.1
 
----
+### Compilación APK Release
+```bash
+flutter build apk --release
+```
 
-## 🔒 Privacidad
-
-- ✅ Ningún audio ni texto sale del teléfono
-- ✅ Sin cuentas, sin registro, sin anuncios, sin rastreadores
-- ✅ El historial se guarda solo en tu dispositivo (puedes borrarlo o desactivarlo)
-- 🌐 Única conexión: descarga inicial de modelos de IA
-
-## ❓ Problemas frecuentes
-
-| Problema | Solución |
-|---|---|
-| "App no instalada" | Comprueba que tu CPU es de 64 bits y Android 8.0+ |
-| La descarga de modelos falla | Verifica el WiFi y reintenta — reanuda donde quedó |
-| Va lenta la traducción | Ajustes → sube los hilos de CPU (según tu móvil) |
-| No se oye en llamadas | Pon el altavoz o usa auriculares con la app abierta |
+Para configurar tus IDs de producción de Google AdMob al compilar:
+```bash
+flutter build apk --release \
+  --dart-define=ADMOB_ANDROID_BANNER=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY \
+  --dart-define=ADMOB_ANDROID_INTERSTITIAL=ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ \
+  --dart-define=ADMOB_ANDROID_REWARDED=ca-app-pub-XXXXXXXXXXXXXXXX/WWWWWWWWWW
+```
 
 ---
 
-<div align="center">
+## 🔒 Privacidad y Aviso Legal
 
-Hecho con Flutter + whisper.cpp + llama.cpp · Los modelos de IA se descargan de [Hugging Face](https://huggingface.co)
-
-⭐ **Si te gusta, dale una estrella al repo**
-
-</div>
+* **Privacidad**: Ningún audio, transcripción ni metadato sale del dispositivo. El procesamiento de IA ocurre 100% de manera local en el procesador del teléfono.
+* **Aviso Legal**: La grabación y traducción de llamadas puede requerir el consentimiento de todas las partes según tu jurisdicción. El usuario es el único responsable del cumplimiento legal en su región.

@@ -1,0 +1,169 @@
+================================================================================
+PLATICA-SAY - GUIA DE DESPLIEGUE Y MONETIZACION
+Fecha: 01/08/2026 | Version: 0.1.0+1
+================================================================================
+
+ESTADO ACTUAL DEL PROYECTO
+--------------------------
+[x] APK release firmada:  build\app\outputs\flutter-apk\app-release.apk (55.7 MB)
+[x] AAB release firmado:  build\app\outputs\bundle\release\app-release.aab (47.7 MB)
+[x] Keystore generado:    android\platica-say.keystore (RSA 2048, 10000 dias)
+[x] key.properties:       android\key.properties (en .gitignore, NO commitear)
+[x] Paywall implementado con RevenueCat (purchases_flutter)
+[x] Gating premium: llamadas, 10 idiomas extra, pantalla dividida
+[x] Gratis: modo presencial ES<->EN
+
+!!! CRITICO - HAZ BACKUP DEL KEYSTORE !!!
+Copia android\platica-say.keystore y android\key.properties a un gestor de
+contrasenas o unidad cifrada FUERA de este equipo. Si pierdes el keystore,
+NUNCA podras actualizar la app en Play Store. No hay recuperacion posible.
+
+================================================================================
+PASO 1 - CUENTAS Y PAGOS (1 dia)
+================================================================================
+1.1. Google Play Console: https://play.google.com/console
+     - Pago unico: $25 USD
+     - Verifica identidad (DNI/pasaporte + telefono)
+1.2. Apple Developer (solo si compilas iOS): $99/ano
+1.3. RevenueCat: https://app.revenuecat.com (plan gratis hasta $2.5k/mes)
+     - Crea proyecto "Platica-Say"
+     - Conecta con Play Console (requiere cuenta de servicio GCP:
+       Play Console > Configuracion > Acceso API > vincular proyecto GCP)
+     - Crea Entitlement llamado exactamente: premium
+     - Crea productos (ver Paso 4)
+     - Copia la API key de Android (goog_...)
+
+================================================================================
+PASO 2 - CONFIGURAR REVENUECAT EN LA APP
+================================================================================
+2.1. Edita lib\premium\premium_service.dart:
+     - Sustituye 'goog_TU_API_KEY_AQUI' por tu key, o mejor:
+       compila con --dart-define=REVENUECAT_ANDROID_KEY=goog_xxxxx
+2.2. Recompila:
+       flutter build appbundle --release --dart-define=REVENUECAT_ANDROID_KEY=goog_xxxxx
+
+================================================================================
+PASO 3 - REQUISITOS LEGALES (obligatorios para Play Store)
+================================================================================
+3.1. POLITICA DE PRIVACIDAD (URL publica obligatoria):
+     - Genera una en GitHub Pages o app-privacy-policy generator
+     - Puntos clave: audio procesado 100% local, sin servidores,
+       unica conexion: descarga de modelos desde Hugging Face,
+       responsabilidad del usuario sobre consentimiento de grabacion
+3.2. DATA SAFETY (formulario en Play Console):
+     - Recopila datos: NO (todo es local)
+     - Excepcion: RevenueCat recopila ID de compra anonimo -> declarar
+       "Historial de compras" como dato recopilado, no compartido
+3.3. PUBLICO OBJETIVO: 18+ (evita politicas de apps infantiles)
+3.4. CLASIFICACION IARC: cuestionario estandar, sin contenido sensible
+3.5. AVISO EN APP (ya incluido en README, anadir dialogo si Google lo pide):
+     "Grabar llamadas puede requerir consentimiento de todas las partes"
+
+================================================================================
+PASO 4 - CREAR PRODUCTOS DE MONETIZACION
+================================================================================
+En Play Console > Monetizar > Productos > Suscripciones:
+
+  ID: premium_monthly    | 2,99 USD/mes  | Prueba gratuita 7 dias
+  ID: premium_yearly     | 19,99 USD/ano | Prueba gratuita 7 dias
+
+En Play Console > Monetizar > Productos > Productos gestionados:
+  ID: premium_lifetime   | 39,99 USD pago unico
+
+En RevenueCat: crea un Offering "default" con los 3 paquetes y
+asignalos todos al entitlement "premium".
+
+MATRIZ FREE vs PREMIUM (ya implementada en codigo):
+  GRATIS:  presencial ES<->EN, voz ES/EN, historial
+  PREMIUM: modo llamada/overlay, 10 idiomas extra, pantalla dividida
+
+================================================================================
+PASO 5 - PRUEBAS CERRADAS (obligatorio, 14 dias)
+================================================================================
+Las cuentas nuevas de Play Console EXIGEN prueba cerrada:
+  - Minimo 12 testers (cuentas nuevas 2023+; puede variar)
+  - Minimo 14 dias de prueba continua
+5.1. Play Console > Pruebas > Prueba cerrada > Crear track
+5.2. Sube app-release.aab
+5.3. Crea lista de testers (emails Gmail) - recluta en:
+     familia/amigos, Reddit r/androidapps, grupos Telegram de Android
+5.4. Rellena ficha de tienda (ver Paso 6) antes de enviar a revision
+5.5. Durante los 14 dias: pide a testers que abran la app a diario
+     y te reporten crashes (Play Console > Calidad > Fallos)
+
+================================================================================
+PASO 6 - FICHA DE TIENDA (ASO)
+================================================================================
+6.1. Nombre: Platica-Say: Traductor de llamadas
+6.2. Descripcion corta (80 caracteres):
+     "Traduce llamadas y conversaciones en tiempo real. 100% offline y privado."
+6.3. Descripcion larga: incluir keywords:
+     traductor llamadas, call translator, offline translation,
+     traductor voz tiempo real, interpreter, traduccion simultanea
+6.4. Recursos graficos:
+     - Icono 512x512 PNG
+     - Feature graphic 1024x500
+     - 4-8 capturas (graba una llamada real traduciendose con el overlay)
+6.5. Video YouTube (30-60s) enlazado en la ficha: demo de la llamada
+     traducida. Es el asset de marketing principal.
+
+================================================================================
+PASO 7 - LANZAMIENTO A PRODUCCION
+================================================================================
+7.1. Tras 14 dias de prueba cerrada sin crashes criticos:
+     Produccion > Crear version > subir AAB firmado > enviar a revision
+7.2. Revision de Google: 1-7 dias
+     - Si rechazan por "grabacion de llamadas": apela citando que el
+       usuario inicia la captura manualmente y hay aviso de consentimiento
+7.3. Lanzamiento escalonado: 10% > 50% > 100% en 1 semana
+
+================================================================================
+PASO 8 - iOS CON JAILBREAK (canal alternativo)
+================================================================================
+8.1. En un Mac/Linux con Theos instalado:
+       cd ios_jailbreak && make package
+     Genera: com.platicasay.tweak_0.1.0_iphoneos-arm64.deb
+8.2. Crea repo Sileo propio (GitHub Pages):
+       /repo/Packages  (generar con: dpkg-scanpackages -m . > Packages)
+       /repo/Release   (metadatos del repo)
+       /repo/*.deb
+8.3. La app iOS base: flutter build ios (requiere Mac + cuenta Apple $99)
+     o instalar el IPA con AltStore/Sideloadly sin cuenta de pago
+8.4. Monetizacion iOS jailbreak: RevenueCat NO funciona fuera de App Store.
+     Alternativa: venta directa con Stripe/Gumroad + codigo de licencia,
+     o dejar iOS gratis como gancho hacia Android premium.
+
+================================================================================
+PASO 9 - MARKETING DE LANZAMIENTO
+================================================================================
+9.1. Video demo 30s (TikTok/Reels/Shorts): dos personas, una llamada,
+     la app traduciendo en vivo. Angulo: "ningun dato sale del telefono"
+9.2. Product Hunt (martes-jueves, 00:01 PT) - categoria: Privacy, Android
+9.3. Reddit: r/android, r/privacy, r/selfhosted (dia del lanzamiento)
+9.4. Comunidades de viajeros/expats/nomadas digitales (caso de uso ideal)
+9.5. Metricas objetivo en Play Console:
+     - Conversion ficha->instalacion: >25%
+     - Trial->pago: >2% (sano), >5% (excelente)
+
+================================================================================
+PASO 10 - MANTENIMIENTO
+================================================================================
+10.1. Actualizaciones de modelos: subir nueva version a Hugging Face y
+      publicar update de app con --dart-define apuntando a la nueva URL
+10.2. Ciclo de releases: cada 2-4 semanas (bugs + 1 feature visible)
+10.3. Responder TODAS las resenas <1 estrella en <48h (impacta ranking)
+10.4. Backup del keystore: verificar trimestralmente que la copia existe
+
+================================================================================
+RESUMEN DE COSTES
+================================================================================
+  Google Play Console      25 USD (unico)
+  Apple Developer          99 USD/ano (opcional, solo iOS)
+  RevenueCat               0 USD hasta $2.5k/mes de ingresos
+  Dominio web (opcional)   ~12 USD/ano
+  TOTAL MINIMO             25 USD
+
+INGRESOS POTENCIALES (referencia apps similares de traduccion):
+  10.000 instalaciones -> ~2-4% premium -> 200-400 suscriptores
+  300 suscriptores x 2,99 USD = ~900 USD/mes (Google retiene 15%)
+================================================================================

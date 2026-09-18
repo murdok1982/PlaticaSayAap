@@ -1,0 +1,9 @@
+Package: com.platicasay.tweak
+Name: Platica-Say Call Translator
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Captura audio de llamadas y lo envía a la app Platica-Say para traducción local en tiempo real. Requiere jailbreak.
+Maintainer: Platica-Say
+Author: Platica-Say
+Section: Tweaks
+Depends: mobilesubstrate

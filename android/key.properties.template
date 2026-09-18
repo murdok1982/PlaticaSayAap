@@ -1,0 +1,4 @@
+storePassword=CAMBIA_ESTA_PASSWORD
+keyPassword=CAMBIA_ESTA_PASSWORD
+keyAlias=platica
+storeFile=../platica-say.keystore
